@@ -33,7 +33,7 @@ export default function ItemList({
           title: "Sample Item 1",
           subtitle: "Description 1",
           createdAt: now,
-          image: "/public/images/p1.jpg",
+          image: "/images/p1.jpg",
         },
         {
           id: "mock2",
@@ -47,7 +47,7 @@ export default function ItemList({
           title: "Sample Item 3",
           subtitle: "Description 3",
           createdAt: now,
-          image: "/public/images/p3.jpg",
+          image: "/images/p3.jpg",
         },
       ];
       mockItems.forEach(useItemsStore.getState().createItemLocal);
