@@ -48,6 +48,7 @@ export default function ItemFormModal({
     } else {
       const it = createItem({ title: data.title, subtitle: data.subtitle });
       createLocal(it);
+      reset({});
     }
     onOpenChange(false);
     onSaved?.();
@@ -76,7 +77,10 @@ export default function ItemFormModal({
             {editing ? "Edit Item" : "Create Item"}
           </Dialog.Title>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-4 grid gap-3">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="mt-4 flex flex-col gap-3"
+          >
             <input
               {...register("title")}
               placeholder="Title"
@@ -87,7 +91,7 @@ export default function ItemFormModal({
               {...register("subtitle")}
               placeholder="Subtitle"
               rows={3}
-              className="rounded-md border px-3 py-2"
+              className="rounded-md border px-3 py-2 !resize-none"
             />
             <div className="flex justify-end gap-2 mt-2">
               <Button
