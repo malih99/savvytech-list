@@ -1,3 +1,4 @@
+// ItemFormModal.tsx
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
@@ -33,10 +34,32 @@ export default function ItemFormModal({
         category: "",
         image: undefined,
       },
-      mode: "onChange", // so formState.isValid updates as user types
+      mode: "onChange",
     });
 
-  // file handler must access setValue, so define inside component
+  // Reset form when editing changes or when the modal opens
+  React.useEffect(() => {
+    if (editing) {
+      reset({
+        title: editing.title,
+        subtitle: editing.subtitle,
+        category: editing.category ?? "",
+        image: editing.image ?? undefined,
+      });
+    } else {
+      // when opening for create
+      reset({ title: "", subtitle: "", category: "", image: undefined });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing]);
+
+  // When modal is closed, always clear the form so next open is clean
+  React.useEffect(() => {
+    if (!open) {
+      reset({ title: "", subtitle: "", category: "", image: undefined });
+    }
+  }, [open, reset]);
+
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -45,19 +68,6 @@ export default function ItemFormModal({
       setValue("image", reader.result as string, { shouldValidate: true });
     reader.readAsDataURL(file);
   };
-
-  React.useEffect(() => {
-    if (editing) {
-      reset({
-        title: editing.title,
-        subtitle: editing.subtitle,
-        category: (editing as any).category ?? "",
-        image: (editing as any).image ?? undefined,
-      });
-    } else {
-      reset({ title: "", subtitle: "", category: "", image: undefined });
-    }
-  }, [editing, reset]);
 
   const onSubmit = (data: ItemForm) => {
     if (editing) {
@@ -77,8 +87,10 @@ export default function ItemFormModal({
         image: data.image ?? null,
       });
       createLocal(it);
-      reset({});
     }
+
+    // reset form and close modal
+    reset({ title: "", subtitle: "", category: "", image: undefined });
     onOpenChange(false);
     onSaved?.();
   };
@@ -125,7 +137,6 @@ export default function ItemFormModal({
               className="rounded-md border px-3 py-2 !resize-none"
             />
 
-            {/* category input (free text) */}
             <input
               {...register("category")}
               placeholder="Category (e.g. Design, Research)"
@@ -133,10 +144,8 @@ export default function ItemFormModal({
               aria-label="Category"
             />
 
-            {/* file input */}
             <input type="file" accept="image/*" onChange={handleFile} />
 
-            {/* preview */}
             {imagePreview && (
               <img
                 src={imagePreview}
