@@ -3,15 +3,12 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
 import Button from "../../../components/ui/Button";
 import { formatDate } from "../model/utils";
-import { Edit2, Trash2 } from "lucide-react";
 import type { Item } from "../model/types";
 
 export default function ItemDetailsModal({
   item,
   open,
   onOpenChange,
-  onEdit,
-  onDelete,
 }: {
   item?: Item | null;
   open: boolean;
@@ -37,7 +34,7 @@ export default function ItemDetailsModal({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.18 }}
-          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl p-6 shadow-xl overflow-y-auto max-h-[90vh]"
+          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-2xl p-6 shadow-xl overflow-y-auto max-h-[90vh] z-50"
         >
           <div className="flex flex-col sm:flex-row gap-4">
             {item.image && (
@@ -61,29 +58,6 @@ export default function ItemDetailsModal({
                       </span>
                     </div>
                   )}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      onEdit(item);
-                      onOpenChange(false); // close details modal to open edit modal separately
-                    }}
-                  >
-                    <Edit2 size={16} />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      onDelete(item.id);
-                      onOpenChange(false);
-                    }}
-                  >
-                    <Trash2 size={16} />
-                    Delete
-                  </Button>
                 </div>
               </div>
 

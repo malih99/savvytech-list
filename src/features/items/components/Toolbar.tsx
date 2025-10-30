@@ -1,7 +1,6 @@
 import React from "react";
-import { LucidePlus, LucideSearch, ArrowUpDown } from "lucide-react";
+import { LucidePlus, LucideSearch } from "lucide-react";
 import Button from "../../../components/ui/Button";
-import IconButton from "../../../components/ui/IconButton";
 import { useItemsStore } from "../store/items.store";
 
 export default function Toolbar({ onCreate }: { onCreate: () => void }) {
@@ -16,14 +15,11 @@ export default function Toolbar({ onCreate }: { onCreate: () => void }) {
     return () => clearTimeout(t);
   }, [search, setQuery]);
 
-  const toggleSort = () => {
-    setSort(sort === "newest" ? "oldest" : "newest");
-  };
-
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <div className="flex items-center gap-3 w-full sm:w-auto">
-        <div className="relative w-full">
+        <div className="relative flex items-center w-full">
+          {/* Search input */}
           <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <LucideSearch size={16} />
           </span>
@@ -32,23 +28,24 @@ export default function Toolbar({ onCreate }: { onCreate: () => void }) {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by title or subtitle"
             className="pl-10 pr-3 h-12 w-full rounded-lg border border-slate-200 bg-white text-sm focus:ring-2 focus:ring-brand-500"
+            aria-label="Search items"
           />
-        </div>
 
-        {/* visible on wide screens: sort pill + create button */}
-        <div className="hidden sm:flex gap-2 items-center">
-          {/* sort pill like image */}
-          <button
-            onClick={toggleSort}
-            className="flex items-center gap-2 h-12 px-4 rounded-lg border border-slate-200 bg-white"
-            aria-label="Toggle sort"
+          {/* select کوچک برای سورت */}
+          <label htmlFor="sort-select" className="sr-only">
+            Sort
+          </label>
+          <select
+            id="sort-select"
+            value={sort}
+            onChange={(e) => setSort(e.target.value as "newest" | "oldest")}
+            className="ml-3 h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none"
+            aria-label="Select sort order"
             title={sort === "newest" ? "Newest first" : "Oldest first"}
           >
-            <ArrowUpDown size={16} />
-            <span className="text-sm">
-              {sort === "newest" ? "Newest first" : "Oldest first"}
-            </span>
-          </button>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+          </select>
         </div>
       </div>
 

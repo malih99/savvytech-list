@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Toolbar from "../features/items/components/Toolbar";
 import ItemList from "../features/items/components/ItemList";
 import ItemFormModal from "../features/items/components/ItemFormModal";
@@ -17,7 +17,6 @@ export default function HomePage() {
 
   React.useEffect(() => {
     if (!isModalOpen) {
-      // ensure editing cleared when modal not open
       setEditing(null);
     }
   }, [isModalOpen]);
