@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Toolbar from "../features/items/components/Toolbar";
 import ItemList from "../features/items/components/ItemList";
 import ItemFormModal from "../features/items/components/ItemFormModal";
@@ -14,6 +14,13 @@ export default function HomePage() {
   const [isDeleteOpen, setDeleteOpen] = React.useState(false);
   const [toDeleteId, setToDeleteId] = React.useState<string | null>(null);
   const remove = useItemsStore((s) => s.removeItemLocal);
+
+  React.useEffect(() => {
+    if (!isModalOpen) {
+      // ensure editing cleared when modal not open
+      setEditing(null);
+    }
+  }, [isModalOpen]);
 
   const handleCreate = () => {
     setEditing(null);
@@ -65,6 +72,9 @@ export default function HomePage() {
         open={isModalOpen}
         onOpenChange={setModalOpen}
         editing={editing}
+        onSaved={() => {
+          setEditing(null);
+        }}
       />
       <DeleteConfirm
         open={isDeleteOpen}
