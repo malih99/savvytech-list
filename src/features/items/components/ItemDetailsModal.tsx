@@ -1,3 +1,4 @@
+import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
 import Button from "../../../components/ui/Button";
@@ -8,6 +9,8 @@ export default function ItemDetailsModal({
   item,
   open,
   onOpenChange,
+  onEdit,
+  onDelete,
 }: {
   item?: Item | null;
   open: boolean;
@@ -16,6 +19,11 @@ export default function ItemDetailsModal({
   onDelete: (id: string) => void;
 }) {
   if (!item) return null;
+
+  const handleClose = React.useCallback(() => {
+    onOpenChange(false);
+  }, [onOpenChange]);
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Overlay asChild>
@@ -72,7 +80,7 @@ export default function ItemDetailsModal({
           </div>
 
           <div className="mt-6 flex justify-end">
-            <Button variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button variant="secondary" onClick={handleClose}>
               Close
             </Button>
           </div>

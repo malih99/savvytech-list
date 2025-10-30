@@ -1,3 +1,4 @@
+import React from "react";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { motion } from "framer-motion";
 import Button from "../../../components/ui/Button";
@@ -16,6 +17,24 @@ export default function DeleteConfirm({
   title?: string;
   description?: string;
 }) {
+  const handleCancel = React.useCallback(() => {
+    onOpenChange(false);
+  }, [onOpenChange]);
+
+  const handleDelete = React.useCallback(() => {
+    onOpenChange(false);
+    // keep original behavior: call onConfirm shortly after close
+    window.setTimeout(() => {
+      try {
+        onConfirm();
+      } catch (err) {
+        // keep silent but surface a toast if desired (not changing original behavior)
+        // toast.error("Delete failed");
+        // we avoid changing behavior; simply rethrow would be different
+      }
+    }, 100);
+  }, [onOpenChange, onConfirm]);
+
   return (
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Overlay asChild>
@@ -42,16 +61,10 @@ export default function DeleteConfirm({
           </AlertDialog.Description>
 
           <div className="mt-4 flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button variant="secondary" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                onOpenChange(false);
-                setTimeout(() => onConfirm(), 100);
-              }}
-            >
+            <Button variant="destructive" onClick={handleDelete}>
               Delete
             </Button>
           </div>

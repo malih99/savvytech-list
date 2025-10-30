@@ -50,8 +50,7 @@ export default function ItemFormModal({
       // when opening for create
       reset({ title: "", subtitle: "", category: "", image: undefined });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editing]);
+  }, [editing, reset]);
 
   // When modal is closed, always clear the form so next open is clean
   React.useEffect(() => {
@@ -60,44 +59,59 @@ export default function ItemFormModal({
     }
   }, [open, reset]);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () =>
-      setValue("image", reader.result as string, { shouldValidate: true });
-    reader.readAsDataURL(file);
-  };
+  const handleFile = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () =>
+        setValue("image", reader.result as string, { shouldValidate: true });
+      reader.readAsDataURL(file);
+    },
+    [setValue]
+  );
 
-  const onSubmit = (data: ItemForm) => {
-    if (editing) {
-      updateLocal({
-        ...editing,
-        title: data.title,
-        subtitle: data.subtitle,
-        category: data.category,
-        image: data.image ?? null,
-        updatedAt: new Date().toISOString(),
-      });
-      toast.success("Item updated");
-    } else {
-      const it = createItem({
-        title: data.title,
-        subtitle: data.subtitle,
-        category: data.category,
-        image: data.image ?? null,
-      });
-      createLocal(it);
-      toast.success("Item created");
-    }
+  const onSubmit = React.useCallback(
+    (data: ItemForm) => {
+      if (editing) {
+        updateLocal({
+          ...editing,
+          title: data.title,
+          subtitle: data.subtitle,
+          category: data.category,
+          image: data.image ?? null,
+          updatedAt: new Date().toISOString(),
+        });
+        toast.success("Item updated");
+      } else {
+        const it = createItem({
+          title: data.title,
+          subtitle: data.subtitle,
+          category: data.category,
+          image: data.image ?? null,
+        });
+        createLocal(it);
+        toast.success("Item created");
+      }
 
-    // reset form and close modal
-    reset({ title: "", subtitle: "", category: "", image: undefined });
-    onOpenChange(false);
-    onSaved?.();
-  };
+      // reset form and close modal
+      reset({ title: "", subtitle: "", category: "", image: undefined });
+      onOpenChange(false);
+      onSaved?.();
+    },
+    [editing, updateLocal, createLocal, reset, onOpenChange, onSaved]
+  );
+
+  // bind handleSubmit once so we don't inline an anonymous in JSX
+  const onFormSubmit = React.useCallback(() => {
+    void handleSubmit(onSubmit)();
+  }, [handleSubmit, onSubmit]);
 
   const imagePreview = watch("image");
+
+  const handleCancel = React.useCallback(() => {
+    onOpenChange(false);
+  }, [onOpenChange]);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -122,10 +136,7 @@ export default function ItemFormModal({
             {editing ? "Edit Item" : "Create Item"}
           </Dialog.Title>
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="mt-4 flex flex-col gap-3"
-          >
+          <form onSubmit={onFormSubmit} className="mt-4 flex flex-col gap-3">
             <input
               {...register("title")}
               placeholder="Title"
@@ -157,11 +168,7 @@ export default function ItemFormModal({
             )}
 
             <div className="flex justify-end gap-2 mt-2">
-              <Button
-                variant="secondary"
-                type="button"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button variant="secondary" type="button" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button type="submit" disabled={!formState.isValid}>

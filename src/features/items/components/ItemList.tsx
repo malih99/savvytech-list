@@ -22,6 +22,23 @@ export default function ItemList({
   const query = useItemsStore((s) => s.query);
   const sort = useItemsStore((s) => s.sort);
 
+  const handlerMapRef = React.useRef<Map<string, () => void>>(new Map());
+
+  React.useEffect(() => {
+    const map = handlerMapRef.current;
+    items.forEach((it) => {
+      if (!map.has(it.id)) {
+        map.set(it.id, () => {
+          setDeleteTarget(it.id);
+        });
+      }
+    });
+
+    Array.from(map.keys()).forEach((k) => {
+      if (!items.find((i) => i.id === k)) map.delete(k);
+    });
+  }, [items]);
+
   React.useEffect(() => {
     const currentItems = useItemsStore.getState().items;
 
@@ -65,7 +82,7 @@ export default function ItemList({
     }
   }, [items]);
 
-  const handleCreate = (newItem: Item) => {
+  const handleCreate = React.useCallback((newItem: Item) => {
     const store = useItemsStore.getState();
     const hasMock = store.items.some((i) => i.id.startsWith("mock"));
     if (hasMock) {
@@ -74,7 +91,16 @@ export default function ItemList({
         .forEach((m) => store.removeItemLocal(m.id));
     }
     store.createItemLocal(newItem);
-  };
+  }, []);
+
+  const handleEmptyCreate = React.useCallback(() => {
+    handleCreate({
+      id: `user-${Date.now()}`,
+      title: "New Item",
+      subtitle: "",
+      createdAt: new Date().toISOString(),
+    });
+  }, [handleCreate]);
 
   const filtered = React.useMemo(() => {
     const q = query?.trim().toLowerCase();
@@ -94,19 +120,21 @@ export default function ItemList({
     return list;
   }, [items, query, sort]);
 
+  const handleDeleteDialogOpenChange = React.useCallback((v: boolean) => {
+    if (!v) setDeleteTarget(null);
+  }, []);
+
+  const handleConfirmDelete = React.useCallback(() => {
+    if (deleteTarget) {
+      removeItemLocal(deleteTarget);
+      onDelete?.(deleteTarget);
+      toast.success("Item deleted");
+      setDeleteTarget(null);
+    }
+  }, [deleteTarget, removeItemLocal, onDelete]);
+
   if (filtered.length === 0) {
-    return (
-      <EmptyState
-        onCreate={() =>
-          handleCreate({
-            id: `user-${Date.now()}`,
-            title: "New Item",
-            subtitle: "",
-            createdAt: new Date().toISOString(),
-          })
-        }
-      />
-    );
+    return <EmptyState onCreate={handleEmptyCreate} />;
   }
 
   return (
@@ -116,24 +144,15 @@ export default function ItemList({
           key={item.id}
           item={item}
           onEdit={onEdit}
-          onRequestDelete={() => setDeleteTarget(item.id)}
+          onRequestDelete={handlerMapRef.current.get(item.id)!}
           onOpenDetails={onOpenDetails}
         />
       ))}
 
       <DeleteConfirm
         open={!!deleteTarget}
-        onOpenChange={(v) => {
-          if (!v) setDeleteTarget(null);
-        }}
-        onConfirm={() => {
-          if (deleteTarget) {
-            removeItemLocal(deleteTarget);
-            onDelete?.(deleteTarget);
-            toast.success("Item deleted");
-            setDeleteTarget(null);
-          }
-        }}
+        onOpenChange={handleDeleteDialogOpenChange}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

@@ -1,146 +1,166 @@
 import React from "react";
-import type { Item } from "../model/types";
-import { formatDate } from "../model/utils";
-import { Edit2, Trash2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import * as Dialog from "@radix-ui/react-dialog";
+import Button from "../../../components/ui/Button";
+import IconButton from "../../../components/ui/IconButton";
+import { Edit2, Trash2, Plus } from "lucide-react";
+import { useItemsStore } from "../store/items.store";
+import toast from "react-hot-toast";
 
-export default function ItemCard({
-  item,
-  onEdit,
-  onRequestDelete,
-  onOpenDetails,
+export default function CategoryManager({
+  open,
+  onOpenChange,
 }: {
-  item: Item;
-  onEdit: (item: Item) => void;
-  onDelete?: (id: string) => void;
-  onRequestDelete?: () => void;
-  onOpenDetails?: (item: Item) => void;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
 }) {
-  const [expanded, setExpanded] = React.useState(false);
+  const categories = useItemsStore((s) => s.categories);
+  const createCategory = useItemsStore((s) => s.createCategory);
+  const updateCategory = useItemsStore((s) => s.updateCategory);
+  const removeCategory = useItemsStore((s) => s.removeCategory);
 
-  // helper: trim long subtitle for collapsed state
-  const collapsedLimit = 120;
-  const needsCollapse = (item.subtitle || "").length > collapsedLimit;
-  const subtitlePreview =
-    !item.subtitle || !needsCollapse
-      ? item.subtitle
-      : (item.subtitle || "").slice(0, collapsedLimit).trim() + "…";
+  const [newName, setNewName] = React.useState("");
+  const [editing, setEditing] = React.useState<string | null>(null);
+  const [editValue, setEditValue] = React.useState("");
+
+  const handleNewNameChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setNewName(e.target.value);
+    },
+    []
+  );
+
+  const handleEditValueChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEditValue(e.target.value);
+    },
+    []
+  );
+
+  const handleCreate = React.useCallback(() => {
+    if (!newName.trim()) return;
+    createCategory(newName.trim());
+    toast.success("Category added");
+    setNewName("");
+  }, [newName, createCategory]);
+
+  const startEdit = React.useCallback((name: string) => {
+    setEditing(name);
+    setEditValue(name);
+  }, []);
+
+  const confirmEdit = React.useCallback(() => {
+    if (!editing) return;
+    updateCategory(editing, editValue.trim());
+    toast.success("Category updated");
+    setEditing(null);
+    setEditValue("");
+  }, [editing, editValue, updateCategory]);
+
+  const handleRemove = React.useCallback(
+    (name: string) => {
+      removeCategory(name);
+      toast.success("Category removed");
+    },
+    [removeCategory]
+  );
+
+  // Handlers that read data-* attribute to avoid creating per-item closures
+  const handleEditClick = React.useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      const name = (e.currentTarget as HTMLElement).dataset.name;
+      if (!name) return;
+      startEdit(name);
+    },
+    [startEdit]
+  );
+
+  const handleRemoveClick = React.useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      const name = (e.currentTarget as HTMLElement).dataset.name;
+      if (!name) return;
+      handleRemove(name);
+    },
+    [handleRemove]
+  );
+
+  const handleCancelEdit = React.useCallback(() => {
+    setEditing(null);
+    setEditValue("");
+  }, []);
+
+  const handleClose = React.useCallback(() => {
+    onOpenChange(false);
+  }, [onOpenChange]);
 
   return (
-    <motion.article
-      layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{
-        translateY: -6,
-        boxShadow: "0 10px 30px rgba(2,6,23,0.08)",
-      }}
-      transition={{ type: "spring", stiffness: 300, damping: 22 }}
-      className="card cursor-pointer p-4"
-      onClick={() => onOpenDetails?.(item)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onOpenDetails?.(item);
-      }}
-      aria-label={`Open details for ${item.title}`}
-    >
-      {/* image */}
-      {item.image && (
-        <div className="w-full h-40 overflow-hidden rounded-md mb-3">
-          <img
-            src={item.image}
-            alt={item.title}
-            className="w-full h-full object-cover transition-transform duration-300 ease-out transform hover:scale-105"
-            onClick={(e) => e.stopPropagation()}
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Overlay className="fixed inset-0 bg-black/40" />
+      <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl p-6 shadow-xl">
+        <Dialog.Title className="text-lg font-semibold">
+          Manage Categories
+        </Dialog.Title>
+
+        <div className="mt-4 flex gap-2">
+          <input
+            className="flex-1 rounded-md border px-3 h-10"
+            placeholder="New category"
+            value={newName}
+            onChange={handleNewNameChange}
           />
+          <Button onClick={handleCreate}>
+            <Plus size={14} /> Add
+          </Button>
         </div>
-      )}
 
-      {/* content */}
-      <div className="flex flex-col gap-2">
-        <h3 className="title text-lg leading-tight">{item.title}</h3>
-
-        <div className="flex items-center gap-3 flex-wrap text-xs text-slate-400">
-          {item.category && (
-            <span className="font-medium px-2.5 py-0.5 rounded-full border bg-slate-50 text-slate-700">
-              {item.category}
-            </span>
+        <ul className="mt-4 space-y-2 max-h-64 overflow-auto">
+          {categories.length === 0 && (
+            <div className="text-sm text-slate-500">No categories yet.</div>
           )}
-          <span>{formatDate(item.createdAt)}</span>
-          {item.updatedAt && <span>• updated</span>}
+          {categories.map((c) => (
+            <li key={c} className="flex items-center justify-between gap-2">
+              {editing === c ? (
+                <div className="flex-1 flex gap-2">
+                  <input
+                    className="flex-1 rounded-md border px-2 h-9"
+                    value={editValue}
+                    onChange={handleEditValueChange}
+                  />
+                  <Button onClick={confirmEdit}>Save</Button>
+                  <Button variant="secondary" onClick={handleCancelEdit}>
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex-1">{c}</div>
+                  <div className="flex gap-2">
+                    <IconButton
+                      aria-label={`Edit ${c}`}
+                      data-name={c}
+                      onClick={handleEditClick}
+                    >
+                      <Edit2 size={14} />
+                    </IconButton>
+                    <IconButton
+                      aria-label={`Remove ${c}`}
+                      data-name={c}
+                      onClick={handleRemoveClick}
+                    >
+                      <Trash2 size={14} />
+                    </IconButton>
+                  </div>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-4 flex justify-end">
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
         </div>
-
-        {item.subtitle && (
-          <div className="mt-1">
-            <AnimatePresence initial={false}>
-              <motion.p
-                key={expanded ? "expanded" : "collapsed"}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.18 }}
-                className="text-sm text-slate-600 overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {expanded || item.subtitle.length <= 120
-                  ? item.subtitle
-                  : item.subtitle.slice(0, 120) + "…"}
-              </motion.p>
-            </AnimatePresence>
-
-            {item.subtitle.length > 120 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setExpanded((s) => !s);
-                }}
-                className="mt-2 inline-flex items-center gap-2 text-sm text-brand-500 font-medium"
-                aria-expanded={expanded}
-              >
-                <motion.span
-                  initial={{ rotate: 0 }}
-                  animate={{ rotate: expanded ? 180 : 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="inline-block"
-                >
-                  ▼
-                </motion.span>
-                {expanded ? "Show less" : "Show more"}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* دکمه‌های Edit & Delete در پایین کارت */}
-        <div className="flex gap-3 mt-3 justify-end">
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(item);
-            }}
-            className="icon-btn"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Edit item"
-          >
-            <Edit2 size={24} />
-          </motion.button>
-
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              onRequestDelete?.();
-            }}
-            className="icon-btn destructive"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Delete item"
-          >
-            <Trash2 size={24} />
-          </motion.button>
-        </div>
-      </div>
-    </motion.article>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }

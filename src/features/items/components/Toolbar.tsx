@@ -10,10 +10,29 @@ export default function Toolbar({ onCreate }: { onCreate: () => void }) {
   const sort = useItemsStore((s) => s.sort);
 
   const [search, setSearch] = React.useState(query);
+
   React.useEffect(() => {
-    const t = setTimeout(() => setQuery(search), 200);
-    return () => clearTimeout(t);
+    const t = window.setTimeout(() => setQuery(search), 200);
+    return () => window.clearTimeout(t);
   }, [search, setQuery]);
+
+  const handleSearchChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearch(e.target.value);
+    },
+    []
+  );
+
+  const handleSortChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSort(e.target.value as "newest" | "oldest");
+    },
+    [setSort]
+  );
+
+  const handleCreateClick = React.useCallback(() => {
+    onCreate();
+  }, [onCreate]);
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -25,7 +44,7 @@ export default function Toolbar({ onCreate }: { onCreate: () => void }) {
           </span>
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
             placeholder="Search by title or subtitle"
             className="pl-10 pr-3 h-12 w-full rounded-lg border border-slate-200 bg-white text-sm focus:ring-2 focus:ring-brand-500"
             aria-label="Search items"
@@ -38,7 +57,7 @@ export default function Toolbar({ onCreate }: { onCreate: () => void }) {
           <select
             id="sort-select"
             value={sort}
-            onChange={(e) => setSort(e.target.value as "newest" | "oldest")}
+            onChange={handleSortChange}
             className="ml-3 h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none"
             aria-label="Select sort order"
             title={sort === "newest" ? "Newest first" : "Oldest first"}
@@ -50,7 +69,7 @@ export default function Toolbar({ onCreate }: { onCreate: () => void }) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button onClick={onCreate}>
+        <Button onClick={handleCreateClick}>
           <LucidePlus size={16} /> Create
         </Button>
       </div>

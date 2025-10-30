@@ -22,30 +22,72 @@ export default function CategoryManager({
   const [editing, setEditing] = React.useState<string | null>(null);
   const [editValue, setEditValue] = React.useState("");
 
-  const handleCreate = () => {
+  // stable handlers
+  const handleNewNameChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value),
+    []
+  );
+
+  const handleEditValueChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => setEditValue(e.target.value),
+    []
+  );
+
+  const handleCreate = React.useCallback(() => {
     if (!newName.trim()) return;
     createCategory(newName.trim());
     toast.success("Category added");
     setNewName("");
-  };
+  }, [newName, createCategory]);
 
-  const startEdit = (name: string) => {
+  const startEdit = React.useCallback((name: string) => {
     setEditing(name);
     setEditValue(name);
-  };
+  }, []);
 
-  const confirmEdit = () => {
+  const confirmEdit = React.useCallback(() => {
     if (!editing) return;
     updateCategory(editing, editValue.trim());
     toast.success("Category updated");
     setEditing(null);
     setEditValue("");
-  };
+  }, [editing, editValue, updateCategory]);
 
-  const handleRemove = (name: string) => {
-    removeCategory(name);
-    toast.success("Category removed");
-  };
+  const handleRemove = React.useCallback(
+    (name: string) => {
+      removeCategory(name);
+      toast.success("Category removed");
+    },
+    [removeCategory]
+  );
+
+  // read data-name to avoid per-item closures
+  const handleEditClick = React.useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      const name = (e.currentTarget as HTMLElement).dataset.name;
+      if (!name) return;
+      startEdit(name);
+    },
+    [startEdit]
+  );
+
+  const handleRemoveClick = React.useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      const name = (e.currentTarget as HTMLElement).dataset.name;
+      if (!name) return;
+      handleRemove(name);
+    },
+    [handleRemove]
+  );
+
+  const handleCancelEdit = React.useCallback(() => {
+    setEditing(null);
+    setEditValue("");
+  }, []);
+
+  const handleClose = React.useCallback(() => {
+    onOpenChange(false);
+  }, [onOpenChange]);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -60,7 +102,7 @@ export default function CategoryManager({
             className="flex-1 rounded-md border px-3 h-10"
             placeholder="New category"
             value={newName}
-            onChange={(e) => setNewName(e.target.value)}
+            onChange={handleNewNameChange}
           />
           <Button onClick={handleCreate}>
             <Plus size={14} /> Add
@@ -78,16 +120,10 @@ export default function CategoryManager({
                   <input
                     className="flex-1 rounded-md border px-2 h-9"
                     value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
+                    onChange={handleEditValueChange}
                   />
                   <Button onClick={confirmEdit}>Save</Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setEditing(null);
-                      setEditValue("");
-                    }}
-                  >
+                  <Button variant="secondary" onClick={handleCancelEdit}>
                     Cancel
                   </Button>
                 </div>
@@ -97,13 +133,15 @@ export default function CategoryManager({
                   <div className="flex gap-2">
                     <IconButton
                       aria-label={`Edit ${c}`}
-                      onClick={() => startEdit(c)}
+                      data-name={c}
+                      onClick={handleEditClick}
                     >
                       <Edit2 size={14} />
                     </IconButton>
                     <IconButton
                       aria-label={`Remove ${c}`}
-                      onClick={() => handleRemove(c)}
+                      data-name={c}
+                      onClick={handleRemoveClick}
                     >
                       <Trash2 size={14} />
                     </IconButton>
@@ -115,7 +153,7 @@ export default function CategoryManager({
         </ul>
 
         <div className="mt-4 flex justify-end">
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button variant="secondary" onClick={handleClose}>
             Close
           </Button>
         </div>

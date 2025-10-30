@@ -6,6 +6,7 @@ import DeleteConfirm from "../features/items/components/DeleteConfirm";
 import type { Item } from "../features/items/model/types";
 import { useItemsStore } from "../features/items/store/items.store";
 import ItemDetailsModal from "../features/items/components/ItemDetailsModal";
+
 export default function HomePage() {
   const [isModalOpen, setModalOpen] = React.useState(false);
   const [detailsOpen, setDetailsOpen] = React.useState(false);
@@ -21,35 +22,47 @@ export default function HomePage() {
     }
   }, [isModalOpen]);
 
-  const handleCreate = () => {
+  const handleCreate = React.useCallback(() => {
     setEditing(null);
     setModalOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (item: Item) => {
+  const handleEdit = React.useCallback((item: Item) => {
     setEditing(item);
     setModalOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = React.useCallback((id: string) => {
     setToDeleteId(id);
     setDeleteOpen(true);
-  };
+  }, []);
 
-  const confirmDelete = () => {
+  const confirmDelete = React.useCallback(() => {
     if (toDeleteId) remove(toDeleteId);
     setToDeleteId(null);
-  };
+  }, [toDeleteId, remove]);
 
-  const handleOpenDetails = (item: Item) => {
+  const handleOpenDetails = React.useCallback((item: Item) => {
     setDetailsItem(item);
     setDetailsOpen(true);
-  };
+  }, []);
 
-  const handleEditFromDetails = (item: Item) => {
+  const handleEditFromDetails = React.useCallback((item: Item) => {
     setEditing(item);
     setModalOpen(true);
-  };
+  }, []);
+
+  const handleDeleteFromDetails = React.useCallback(
+    (id: string) => {
+      remove(id);
+      setDetailsOpen(false);
+    },
+    [remove]
+  );
+
+  const handleSaved = React.useCallback(() => {
+    setEditing(null);
+  }, []);
 
   return (
     <main className="max-w-[1120px] mx-auto px-4 py-8">
@@ -71,10 +84,9 @@ export default function HomePage() {
         open={isModalOpen}
         onOpenChange={setModalOpen}
         editing={editing}
-        onSaved={() => {
-          setEditing(null);
-        }}
+        onSaved={handleSaved}
       />
+
       <DeleteConfirm
         open={isDeleteOpen}
         onOpenChange={setDeleteOpen}
@@ -85,11 +97,8 @@ export default function HomePage() {
         item={detailsItem}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
-        onEdit={(item) => handleEditFromDetails(item)}
-        onDelete={(id) => {
-          remove(id);
-          setDetailsOpen(false);
-        }}
+        onEdit={handleEditFromDetails}
+        onDelete={handleDeleteFromDetails}
       />
     </main>
   );
