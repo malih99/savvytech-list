@@ -48,9 +48,8 @@ export default function DeleteConfirm({
             <Button
               variant="destructive"
               onClick={() => {
-                onConfirm();
                 onOpenChange(false);
-                toast.success("Item deleted");
+                setTimeout(() => onConfirm(), 100);
               }}
             >
               Delete

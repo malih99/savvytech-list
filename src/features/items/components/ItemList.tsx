@@ -1,10 +1,10 @@
 import React from "react";
 import { useItemsStore } from "../store/items.store";
 import ItemCard from "./ItemCard";
+import DeleteConfirm from "./DeleteConfirm";
 import EmptyState from "./EmptyState";
 import type { Item } from "../model/types";
-
-const PERSIST_KEY = "savvytech-items"; // باید با name گزینه persist در store برابر باشد
+import toast from "react-hot-toast";
 
 export default function ItemList({
   onEdit,
@@ -16,31 +16,16 @@ export default function ItemList({
   onOpenDetails?: (item: Item) => void;
 }) {
   const items = useItemsStore((s) => s.items);
-  const createItemLocal = useItemsStore((s) => s.createItemLocal);
   const removeItemLocal = useItemsStore((s) => s.removeItemLocal);
+  const [deleteTarget, setDeleteTarget] = React.useState<string | null>(null);
+  const [mockCreated, setMockCreated] = React.useState(false);
   const query = useItemsStore((s) => s.query);
   const sort = useItemsStore((s) => s.sort);
 
-  // === اضافه کردن ماک‌ها فقط یکبار در mount ===
   React.useEffect(() => {
-    // اگر دادهٔ persisted وجود داره، از اضافه کردن ماک خودداری کن
-    try {
-      const raw = localStorage.getItem(PERSIST_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        // ساختار persist معمولاً { state: { items: [...] , ... } , version: ... }
-        const persistedItems = parsed?.state?.items;
-        if (Array.isArray(persistedItems) && persistedItems.length > 0) {
-          return; // دادهٔ واقعی وجود داره، ماک لازم نیست
-        }
-      }
-    } catch (e) {
-      // ignore parse errors and fall back to checking current in-memory items
-    }
-
-    // اگر هم در localStorage چیزی نبود و در حافظه هم آیتمی نداریم -> ماک اضافه کن
     const currentItems = useItemsStore.getState().items;
-    if (currentItems.length === 0) {
+
+    if (currentItems.length === 0 && !deleteTarget && !mockCreated) {
       const now = new Date().toISOString();
       const mockItems: Item[] = [
         {
@@ -48,31 +33,47 @@ export default function ItemList({
           title: "Sample Item 1",
           subtitle: "Description 1",
           createdAt: now,
+          image: "/public/images/p1.jpg",
         },
         {
           id: "mock2",
           title: "Sample Item 2",
           subtitle: "Description 2",
           createdAt: now,
+          image: "/images/p2.jpg",
         },
         {
           id: "mock3",
           title: "Sample Item 3",
           subtitle: "Description 3",
           createdAt: now,
+          image: "/public/images/p3.jpg",
         },
       ];
-      mockItems.forEach(createItemLocal);
+      mockItems.forEach(useItemsStore.getState().createItemLocal);
+      setMockCreated(true);
     }
-  }, [createItemLocal]);
+  }, [deleteTarget, mockCreated]);
+
+  React.useEffect(() => {
+    const store = useItemsStore.getState();
+    const hasRealItem = store.items.some((i) => !i.id.startsWith("mock"));
+    if (hasRealItem) {
+      store.items
+        .filter((i) => i.id.startsWith("mock"))
+        .forEach((m) => store.removeItemLocal(m.id));
+    }
+  }, [items]);
 
   const handleCreate = (newItem: Item) => {
-    const stateItems = useItemsStore.getState().items.slice(); // snapshot
-    stateItems
-      .filter((i) => i.id.startsWith("mock"))
-      .forEach((m) => removeItemLocal(m.id));
-
-    createItemLocal(newItem);
+    const store = useItemsStore.getState();
+    const hasMock = store.items.some((i) => i.id.startsWith("mock"));
+    if (hasMock) {
+      store.items
+        .filter((i) => i.id.startsWith("mock"))
+        .forEach((m) => store.removeItemLocal(m.id));
+    }
+    store.createItemLocal(newItem);
   };
 
   const filtered = React.useMemo(() => {
@@ -108,7 +109,6 @@ export default function ItemList({
     );
   }
 
-  // === رندر آیتم‌ها ===
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {filtered.map((item) => (
@@ -116,13 +116,25 @@ export default function ItemList({
           key={item.id}
           item={item}
           onEdit={onEdit}
-          onDelete={(id) => {
-            removeItemLocal(id);
-            onDelete?.(id);
-          }}
+          onRequestDelete={() => setDeleteTarget(item.id)}
           onOpenDetails={onOpenDetails}
         />
       ))}
+
+      <DeleteConfirm
+        open={!!deleteTarget}
+        onOpenChange={(v) => {
+          if (!v) setDeleteTarget(null);
+        }}
+        onConfirm={() => {
+          if (deleteTarget) {
+            removeItemLocal(deleteTarget);
+            onDelete?.(deleteTarget);
+            toast.success("Item deleted");
+            setDeleteTarget(null);
+          }
+        }}
+      />
     </div>
   );
 }
