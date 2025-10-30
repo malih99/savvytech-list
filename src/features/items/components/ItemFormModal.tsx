@@ -1,4 +1,3 @@
-// ItemFormModal.tsx
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
@@ -10,6 +9,7 @@ import { motion } from "framer-motion";
 import { createItem } from "../model/utils";
 import type { Item } from "../model/types";
 import { useItemsStore } from "../store/items.store";
+import toast from "react-hot-toast";
 
 export default function ItemFormModal({
   open,
@@ -79,6 +79,7 @@ export default function ItemFormModal({
         image: data.image ?? null,
         updatedAt: new Date().toISOString(),
       });
+      toast.success("Item updated");
     } else {
       const it = createItem({
         title: data.title,
@@ -87,6 +88,7 @@ export default function ItemFormModal({
         image: data.image ?? null,
       });
       createLocal(it);
+      toast.success("Item created");
     }
 
     // reset form and close modal

@@ -1,6 +1,7 @@
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { motion } from "framer-motion";
 import Button from "../../../components/ui/Button";
+import toast from "react-hot-toast";
 
 export default function DeleteConfirm({
   open,
@@ -49,6 +50,7 @@ export default function DeleteConfirm({
               onClick={() => {
                 onConfirm();
                 onOpenChange(false);
+                toast.success("Item deleted");
               }}
             >
               Delete
