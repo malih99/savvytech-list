@@ -18,3 +18,9 @@ export const createItem = (data: {
     updatedAt: now,
   };
 };
+
+export const formatDate = (iso: string) =>
+  new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));

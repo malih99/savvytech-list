@@ -24,16 +24,38 @@ export default function ItemFormModal({
   const createLocal = useItemsStore((s) => s.createItemLocal);
   const updateLocal = useItemsStore((s) => s.updateItemLocal);
 
-  const { register, handleSubmit, reset, formState } = useForm<ItemForm>({
-    resolver: zodResolver(itemSchema),
-    defaultValues: { title: "", subtitle: "" },
-  });
+  const { register, handleSubmit, reset, formState, setValue, watch } =
+    useForm<ItemForm>({
+      resolver: zodResolver(itemSchema),
+      defaultValues: {
+        title: "",
+        subtitle: "",
+        category: "",
+        image: undefined,
+      },
+      mode: "onChange", // so formState.isValid updates as user types
+    });
+
+  // file handler must access setValue, so define inside component
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () =>
+      setValue("image", reader.result as string, { shouldValidate: true });
+    reader.readAsDataURL(file);
+  };
 
   React.useEffect(() => {
     if (editing) {
-      reset({ title: editing.title, subtitle: editing.subtitle });
+      reset({
+        title: editing.title,
+        subtitle: editing.subtitle,
+        category: (editing as any).category ?? "",
+        image: (editing as any).image ?? undefined,
+      });
     } else {
-      reset({ title: "", subtitle: "" });
+      reset({ title: "", subtitle: "", category: "", image: undefined });
     }
   }, [editing, reset]);
 
@@ -43,16 +65,25 @@ export default function ItemFormModal({
         ...editing,
         title: data.title,
         subtitle: data.subtitle,
+        category: data.category,
+        image: data.image ?? null,
         updatedAt: new Date().toISOString(),
       });
     } else {
-      const it = createItem({ title: data.title, subtitle: data.subtitle });
+      const it = createItem({
+        title: data.title,
+        subtitle: data.subtitle,
+        category: data.category,
+        image: data.image ?? null,
+      });
       createLocal(it);
       reset({});
     }
     onOpenChange(false);
     onSaved?.();
   };
+
+  const imagePreview = watch("image");
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -93,6 +124,27 @@ export default function ItemFormModal({
               rows={3}
               className="rounded-md border px-3 py-2 !resize-none"
             />
+
+            {/* category input (free text) */}
+            <input
+              {...register("category")}
+              placeholder="Category (e.g. Design, Research)"
+              className="h-10 rounded-md border px-3"
+              aria-label="Category"
+            />
+
+            {/* file input */}
+            <input type="file" accept="image/*" onChange={handleFile} />
+
+            {/* preview */}
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                alt="preview"
+                className="w-full h-40 object-cover rounded-md"
+              />
+            )}
+
             <div className="flex justify-end gap-2 mt-2">
               <Button
                 variant="secondary"
