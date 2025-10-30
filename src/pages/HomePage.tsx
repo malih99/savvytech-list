@@ -5,9 +5,11 @@ import ItemFormModal from "../features/items/components/ItemFormModal";
 import DeleteConfirm from "../features/items/components/DeleteConfirm";
 import type { Item } from "../features/items/model/types";
 import { useItemsStore } from "../features/items/store/items.store";
-
+import ItemDetailsModal from "../features/items/components/ItemDetailsModal";
 export default function HomePage() {
   const [isModalOpen, setModalOpen] = React.useState(false);
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
+  const [detailsItem, setDetailsItem] = React.useState<Item | null>(null);
   const [editing, setEditing] = React.useState<Item | null>(null);
   const [isDeleteOpen, setDeleteOpen] = React.useState(false);
   const [toDeleteId, setToDeleteId] = React.useState<string | null>(null);
@@ -33,6 +35,16 @@ export default function HomePage() {
     setToDeleteId(null);
   };
 
+  const handleOpenDetails = (item: Item) => {
+    setDetailsItem(item);
+    setDetailsOpen(true);
+  };
+
+  const handleEditFromDetails = (item: Item) => {
+    setEditing(item);
+    setModalOpen(true);
+  };
+
   return (
     <main className="max-w-[1120px] mx-auto px-4 py-8">
       <div className="mb-6">
@@ -43,7 +55,11 @@ export default function HomePage() {
       </div>
 
       <Toolbar onCreate={handleCreate} />
-      <ItemList onEdit={handleEdit} onDelete={handleDelete} />
+      <ItemList
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onOpenDetails={handleOpenDetails}
+      />
 
       <ItemFormModal
         open={isModalOpen}
@@ -54,6 +70,17 @@ export default function HomePage() {
         open={isDeleteOpen}
         onOpenChange={setDeleteOpen}
         onConfirm={confirmDelete}
+      />
+
+      <ItemDetailsModal
+        item={detailsItem}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        onEdit={(item) => handleEditFromDetails(item)}
+        onDelete={(id) => {
+          remove(id);
+          setDetailsOpen(false);
+        }}
       />
     </main>
   );

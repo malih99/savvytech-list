@@ -7,9 +7,11 @@ import type { Item } from "../model/types";
 export default function ItemList({
   onEdit,
   onDelete,
+  onOpenDetails,
 }: {
   onEdit: (item: Item) => void;
   onDelete: (id: string) => void;
+  onOpenDetails?: (item: Item) => void;
 }) {
   const items = useItemsStore((s) => s.items);
   const query = useItemsStore((s) => s.query);
@@ -46,6 +48,7 @@ export default function ItemList({
           item={item}
           onEdit={onEdit}
           onDelete={onDelete}
+          onOpenDetails={onOpenDetails}
         />
       ))}
     </div>
