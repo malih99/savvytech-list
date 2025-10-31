@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Item, Sort } from "../model/types";
+import type { Item, Sort } from "@/features/items/model/types";
 
 interface State {
   items: Item[];
@@ -26,20 +26,40 @@ export const useItemsStore = create<State>()(
       items: [],
       query: "",
       sort: "newest",
-      createItemLocal: (item) => set({ items: [item, ...get().items] }),
-      updateItemLocal: (item) =>
-        set({
-          items: get().items.map((i) =>
+      createItemLocal: (item: Item) => {
+        set((state) => {
+          console.trace("[store] createItemLocal called for", item.id);
+          if (state.items.some((i) => i.id === item.id)) {
+            console.warn(
+              "[store] createItemLocal skipped, id exists ->",
+              item.id
+            );
+            return state;
+          }
+          return { ...state, items: [item, ...state.items] };
+        });
+      },
+
+      updateItemLocal: (item: Item) => {
+        set((state) => ({
+          ...state,
+          items: state.items.map((i) =>
             i.id === item.id
               ? { ...item, updatedAt: new Date().toISOString() }
               : i
           ),
-        }),
-      removeItemLocal: (id) =>
-        set({ items: get().items.filter((i) => i.id !== id) }),
-      setQuery: (q) => set({ query: q }),
-      setSort: (s) => set({ sort: s }),
-      hydrate: (items) => set({ items }),
+        }));
+      },
+
+      removeItemLocal: (id: string) => {
+        set((state) => ({
+          ...state,
+          items: state.items.filter((i) => i.id !== id),
+        }));
+      },
+      setQuery: (q: string) => set({ query: q }),
+      setSort: (s: Sort) => set({ sort: s }),
+      hydrate: (items: Item[]) => set({ items }),
 
       categories: [],
 

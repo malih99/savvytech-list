@@ -1,19 +1,18 @@
 import React from "react";
-import Toolbar from "../features/items/components/Toolbar";
-import ItemList from "../features/items/components/ItemList";
-import ItemFormModal from "../features/items/components/ItemFormModal";
-import DeleteConfirm from "../features/items/components/DeleteConfirm";
-import type { Item } from "../features/items/model/types";
-import { useItemsStore } from "../features/items/store/items.store";
-import ItemDetailsModal from "../features/items/components/ItemDetailsModal";
+import Toolbar from "@/features/items/components/Toolbar";
+import ItemList from "@/features/items/components/ItemList";
+import ItemFormModal from "@/features/items/components/ItemFormModal";
+import type { Item } from "@/features/items/model/types";
+import { useItemsStore } from "@/features/items/store/items.store";
+import ItemDetailsModal from "@/features/items/components/ItemDetailsModal";
 
 export default function HomePage() {
   const [isModalOpen, setModalOpen] = React.useState(false);
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const [detailsItem, setDetailsItem] = React.useState<Item | null>(null);
   const [editing, setEditing] = React.useState<Item | null>(null);
-  const [isDeleteOpen, setDeleteOpen] = React.useState(false);
   const [toDeleteId, setToDeleteId] = React.useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
   const remove = useItemsStore((s) => s.removeItemLocal);
 
   React.useEffect(() => {
@@ -37,11 +36,6 @@ export default function HomePage() {
     setDeleteOpen(true);
   }, []);
 
-  const confirmDelete = React.useCallback(() => {
-    if (toDeleteId) remove(toDeleteId);
-    setToDeleteId(null);
-  }, [toDeleteId, remove]);
-
   const handleOpenDetails = React.useCallback((item: Item) => {
     setDetailsItem(item);
     setDetailsOpen(true);
@@ -60,8 +54,19 @@ export default function HomePage() {
     [remove]
   );
 
-  const handleSaved = React.useCallback(() => {
+  const handleSaved = React.useCallback((newItem?: Item) => {
+    console.log("[HomePage] handleSaved called, newItem=", newItem);
+    if (newItem) {
+      const store = useItemsStore.getState();
+      // remove mocks
+      store.items
+        .filter((i) => i.id.startsWith("mock"))
+        .forEach((i) => store.removeItemLocal(i.id));
+      // create the real item once
+      store.createItemLocal(newItem);
+    }
     setEditing(null);
+    setModalOpen(false);
   }, []);
 
   return (
@@ -85,12 +90,6 @@ export default function HomePage() {
         onOpenChange={setModalOpen}
         editing={editing}
         onSaved={handleSaved}
-      />
-
-      <DeleteConfirm
-        open={isDeleteOpen}
-        onOpenChange={setDeleteOpen}
-        onConfirm={confirmDelete}
       />
 
       <ItemDetailsModal

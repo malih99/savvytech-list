@@ -1,4 +1,4 @@
-import Button from "../../../components/ui/Button";
+import Button from "@/components/ui/Button";
 import { LucideInbox } from "lucide-react";
 
 export default function EmptyState({ onCreate }: { onCreate: () => void }) {

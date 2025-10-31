@@ -1,8 +1,7 @@
 import React from "react";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { motion } from "framer-motion";
-import Button from "../../../components/ui/Button";
-import toast from "react-hot-toast";
+import Button from "@/components/ui/Button";
 
 export default function DeleteConfirm({
   open,
@@ -23,14 +22,11 @@ export default function DeleteConfirm({
 
   const handleDelete = React.useCallback(() => {
     onOpenChange(false);
-    // keep original behavior: call onConfirm shortly after close
     window.setTimeout(() => {
       try {
         onConfirm();
-      } catch (err) {
-        // keep silent but surface a toast if desired (not changing original behavior)
-        // toast.error("Delete failed");
-        // we avoid changing behavior; simply rethrow would be different
+      } catch {
+        // ignore
       }
     }, 100);
   }, [onOpenChange, onConfirm]);

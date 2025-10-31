@@ -1,9 +1,9 @@
 import React from "react";
-import { useItemsStore } from "../store/items.store";
+import { useItemsStore } from "@/features/items/store/items.store";
 import ItemCard from "./ItemCard";
 import DeleteConfirm from "./DeleteConfirm";
 import EmptyState from "./EmptyState";
-import type { Item } from "../model/types";
+import type { Item } from "@/features/items/model/types";
 import toast from "react-hot-toast";
 
 export default function ItemList({
@@ -46,28 +46,35 @@ export default function ItemList({
       const now = new Date().toISOString();
       const mockItems: Item[] = [
         {
-          id: "mock1",
+          id: `mock-${now}-1`,
           title: "Sample Item 1",
           subtitle: "Description 1",
           createdAt: now,
           image: "/images/p1.jpg",
         },
         {
-          id: "mock2",
+          id: `mock-${now}-2`,
           title: "Sample Item 2",
           subtitle: "Description 2",
           createdAt: now,
           image: "/images/p2.jpg",
         },
         {
-          id: "mock3",
+          id: `mock-${now}-3`,
           title: "Sample Item 3",
           subtitle: "Description 3",
           createdAt: now,
           image: "/images/p3.jpg",
         },
       ];
-      mockItems.forEach(useItemsStore.getState().createItemLocal);
+
+      mockItems.forEach((mi) =>
+        useItemsStore.getState().createItemLocal({
+          ...mi,
+          id: crypto?.randomUUID?.() ?? `mock-${Date.now()}-${Math.random()}`,
+        })
+      );
+
       setMockCreated(true);
     }
   }, [deleteTarget, mockCreated]);
@@ -95,7 +102,7 @@ export default function ItemList({
 
   const handleEmptyCreate = React.useCallback(() => {
     handleCreate({
-      id: `user-${Date.now()}`,
+      id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       title: "New Item",
       subtitle: "",
       createdAt: new Date().toISOString(),
@@ -144,8 +151,10 @@ export default function ItemList({
           key={item.id}
           item={item}
           onEdit={onEdit}
-          onRequestDelete={handlerMapRef.current.get(item.id)!}
+          onRequestDelete={() => setDeleteTarget(item.id)}
           onOpenDetails={onOpenDetails}
+          open={false}
+          onOpenChange={() => {}}
         />
       ))}
 

@@ -1,9 +1,9 @@
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import Button from "../../../components/ui/Button";
-import IconButton from "../../../components/ui/IconButton";
+import Button from "@/components/ui/Button";
+import IconButton from "@/components/ui/IconButton";
 import { Edit2, Trash2, Plus } from "lucide-react";
-import { useItemsStore } from "../store/items.store";
+import { useItemsStore } from "@/features/items/store/items.store";
 import toast from "react-hot-toast";
 
 export default function CategoryManager({

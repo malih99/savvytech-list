@@ -1,7 +1,7 @@
 import React from "react";
 import { LucidePlus, LucideSearch } from "lucide-react";
-import Button from "../../../components/ui/Button";
-import { useItemsStore } from "../store/items.store";
+import Button from "@/components/ui/Button";
+import { useItemsStore } from "@/features/items/store/items.store";
 
 export default function Toolbar({ onCreate }: { onCreate: () => void }) {
   const setQuery = useItemsStore((s) => s.setQuery);
@@ -50,7 +50,6 @@ export default function Toolbar({ onCreate }: { onCreate: () => void }) {
             aria-label="Search items"
           />
 
-          {/* select کوچک برای سورت */}
           <label htmlFor="sort-select" className="sr-only">
             Sort
           </label>

@@ -1,15 +1,24 @@
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import Button from "../../../components/ui/Button";
-import IconButton from "../../../components/ui/IconButton";
+import Button from "@/components/ui/Button";
+import IconButton from "@/components/ui/IconButton";
 import { Edit2, Trash2, Plus } from "lucide-react";
-import { useItemsStore } from "../store/items.store";
+import { useItemsStore } from "@/features/items/store/items.store";
+import type { Item } from "@/features/items/model/types";
 import toast from "react-hot-toast";
 
 export default function CategoryManager({
+  item,
+  onEdit,
+  onRequestDelete,
+  onOpenDetails,
   open,
   onOpenChange,
 }: {
+  item: Item;
+  onEdit: (item: Item) => void;
+  onRequestDelete: () => void;
+  onOpenDetails?: (item: Item) => void;
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
@@ -64,7 +73,6 @@ export default function CategoryManager({
     [removeCategory]
   );
 
-  // Handlers that read data-* attribute to avoid creating per-item closures
   const handleEditClick = React.useCallback(
     (e: React.MouseEvent<HTMLElement>) => {
       const name = (e.currentTarget as HTMLElement).dataset.name;

@@ -1,28 +1,23 @@
-import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
-import Button from "../../../components/ui/Button";
-import { formatDate } from "../model/utils";
-import type { Item } from "../model/types";
+import Button from "@/components/ui/Button";
+import { formatDate } from "@/features/items/model/utils";
+import type { Item } from "@/features/items/model/types";
 
-export default function ItemDetailsModal({
-  item,
-  open,
-  onOpenChange,
-  onEdit,
-  onDelete,
-}: {
+type Props = {
   item?: Item | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onEdit: (item: Item) => void;
-  onDelete: (id: string) => void;
-}) {
+  onEdit?: (item: Item) => void;
+  onDelete?: (id: string) => void;
+};
+
+export default function ItemDetailsModal({ item, open, onOpenChange }: Props) {
   if (!item) return null;
 
-  const handleClose = React.useCallback(() => {
+  const handleClose = () => {
     onOpenChange(false);
-  }, [onOpenChange]);
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -35,7 +30,7 @@ export default function ItemDetailsModal({
         />
       </Dialog.Overlay>
 
-      <Dialog.Content asChild>
+      <Dialog.Content>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

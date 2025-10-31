@@ -2,13 +2,13 @@ import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { itemSchema } from "../../items/model/schema";
-import type { ItemForm } from "../../items/model/schema";
-import Button from "../../../components/ui/Button";
+import { itemSchema } from "@/features/items/model/schema";
+import type { ItemForm } from "@/features/items/model/schema";
+import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
-import { createItem } from "../model/utils";
-import type { Item } from "../model/types";
-import { useItemsStore } from "../store/items.store";
+import { createItem } from "@/features/items/model/utils";
+import type { Item } from "@/features/items/model/types";
+import { useItemsStore } from "@/features/items/store/items.store";
 import toast from "react-hot-toast";
 
 export default function ItemFormModal({
@@ -20,7 +20,7 @@ export default function ItemFormModal({
   open: boolean;
   onOpenChange: (v: boolean) => void;
   editing?: Item | null;
-  onSaved?: () => void;
+  onSaved?: (item: Item) => void;
 }) {
   const createLocal = useItemsStore((s) => s.createItemLocal);
   const updateLocal = useItemsStore((s) => s.updateItemLocal);
@@ -37,7 +37,6 @@ export default function ItemFormModal({
       mode: "onChange",
     });
 
-  // Reset form when editing changes or when the modal opens
   React.useEffect(() => {
     if (editing) {
       reset({
@@ -47,12 +46,10 @@ export default function ItemFormModal({
         image: editing.image ?? undefined,
       });
     } else {
-      // when opening for create
       reset({ title: "", subtitle: "", category: "", image: undefined });
     }
   }, [editing, reset]);
 
-  // When modal is closed, always clear the form so next open is clean
   React.useEffect(() => {
     if (!open) {
       reset({ title: "", subtitle: "", category: "", image: undefined });
@@ -84,28 +81,28 @@ export default function ItemFormModal({
         });
         toast.success("Item updated");
       } else {
-        const it = createItem({
+        const formData: ItemForm = {
           title: data.title,
           subtitle: data.subtitle,
           category: data.category,
-          image: data.image ?? null,
-        });
-        createLocal(it);
+          image: data.image ?? undefined,
+        };
+        const it: Item = {
+          ...createItem(formData),
+          // id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          image: formData.image ?? null,
+        };
+        // createLocal(it);
+        onSaved?.(it);
+
         toast.success("Item created");
       }
 
-      // reset form and close modal
       reset({ title: "", subtitle: "", category: "", image: undefined });
       onOpenChange(false);
-      onSaved?.();
     },
-    [editing, updateLocal, createLocal, reset, onOpenChange, onSaved]
+    [editing, updateLocal, reset, onOpenChange, onSaved]
   );
-
-  // bind handleSubmit once so we don't inline an anonymous in JSX
-  const onFormSubmit = React.useCallback(() => {
-    void handleSubmit(onSubmit)();
-  }, [handleSubmit, onSubmit]);
 
   const imagePreview = watch("image");
 
@@ -124,7 +121,15 @@ export default function ItemFormModal({
         />
       </Dialog.Overlay>
 
-      <Dialog.Content asChild>
+      <Dialog.Content>
+        <Dialog.Title className="text-lg font-semibold">
+          {editing ? "Edit Item" : "Create Item"}
+        </Dialog.Title>
+
+        <Dialog.Description className="sr-only">
+          {editing ? "Edit the selected item" : "Create a new item"}
+        </Dialog.Description>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -136,7 +141,10 @@ export default function ItemFormModal({
             {editing ? "Edit Item" : "Create Item"}
           </Dialog.Title>
 
-          <form onSubmit={onFormSubmit} className="mt-4 flex flex-col gap-3">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="mt-4 flex flex-col gap-3"
+          >
             <input
               {...register("title")}
               placeholder="Title"
