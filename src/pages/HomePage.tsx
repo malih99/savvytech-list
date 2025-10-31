@@ -12,9 +12,9 @@ export default function HomePage() {
   const [detailsItem, setDetailsItem] = React.useState<Item | null>(null);
   const [editing, setEditing] = React.useState<Item | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [toDeleteId, setToDeleteId] = React.useState<string | null>(null);
+  const [_toDeleteId, setToDeleteId] = React.useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [_deleteOpen, setDeleteOpen] = React.useState(false);
   const remove = useItemsStore((s) => s.removeItemLocal);
 
   React.useEffect(() => {
