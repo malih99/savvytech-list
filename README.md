@@ -1,73 +1,136 @@
-# React + TypeScript + Vite
+# SavvyTech Item Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React-based item management app built with Zustand for state management and Radix UI for modals/dialogs. It allows users to create, edit, delete, and view items, with mock items for testing purposes.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **CRUD Items:** Create, read, update, and delete items.
+- **Mock Items:** Automatically generates sample items if the list is empty.
+- **Local State Persistence:** Uses Zustand with `persist` middleware to save items in local storage.
+- **Search & Sort:** Filter items by query and sort by newest/oldest.
+- **Image Upload & Preview:** Upload an image for each item and preview before saving.
+- **Details Modal:** View full item details and perform actions from the details view.
+- **Unique IDs:** All items have unique IDs (UUID) to prevent duplicates.
+- **Responsive Grid Layout:** Items are displayed in a responsive grid.
+- **Notifications:** Uses `react-hot-toast` for success/error messages.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **React 18** – Frontend library
+- **TypeScript** – Type safety
+- **Zustand** – State management
+- **Radix UI** – Accessible modals/dialogs
+- **Framer Motion** – Animations for modals and overlays
+- **Zod + react-hook-form** – Form validation
+- **Tailwind CSS** – Styling
+- **react-hot-toast** – Notifications
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Installation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. Clone the repository:
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+```bash
+git clone <your-repo-url>
+cd <your-repo-folder>
+Install dependencies:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+bash
+Copy code
+npm install
+# or
+yarn
+Start the development server:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+bash
+Copy code
+npm run dev
+# or
+yarn dev
+Open http://localhost:5173 in your browser.
+
+Usage
+Creating an Item
+Click the Create button on the toolbar.
+
+Fill in the form fields (title, subtitle, category) and optionally upload an image.
+
+Click Create to save the item.
+
+Editing an Item
+Click Edit on an item card or in the details modal.
+
+Update the fields and save.
+
+Deleting an Item
+Click Delete on an item card or in the details modal.
+
+Confirm deletion in the popup.
+
+Searching & Sorting
+Use the search input to filter items by title or subtitle.
+
+Change the sort order using the sort control (newest/oldest).
+
+Mock Items
+If the item list is empty, sample items are generated automatically.
+
+Mock items are removed when a real item is added.
+
+Code Highlights
+State Store (useItemsStore)
+Handles CRUD operations and category management.
+
+Uses Zustand with persist middleware to save data in local storage.
+
+Prevents duplicate IDs by checking existing items before creating.
+
+Unique IDs
+All items now use UUIDs for IDs, including mock items, to prevent duplicates.
+
+Forms
+Built with react-hook-form and validated with Zod.
+
+Supports image upload with live preview.
+
+Reset automatically when creating a new item or closing the modal.
+
+UI
+Responsive grid layout using Tailwind CSS.
+
+Modal animations with Framer Motion.
+
+Success and error notifications using react-hot-toast.
+
+Contributing
+Fork the repository.
+
+Create a new branch:
+
+bash
+Copy code
+git checkout -b feature/my-feature
+Make your changes and commit:
+
+bash
+Copy code
+git commit -am "Add new feature"
+Push to your branch:
+
+bash
+Copy code
+git push origin feature/my-feature
+Open a pull request.
+
+Known Issues / Todo
+Ensure rapid consecutive saves do not trigger duplicate IDs (handled with UUID now).
+
+Future: add persistent backend storage (API) instead of local storage.
+
+Future: add category filtering and sorting.
+
