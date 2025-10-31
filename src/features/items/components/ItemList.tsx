@@ -153,8 +153,6 @@ export default function ItemList({
           onEdit={onEdit}
           onRequestDelete={() => setDeleteTarget(item.id)}
           onOpenDetails={onOpenDetails}
-          open={false}
-          onOpenChange={() => {}}
         />
       ))}
 
