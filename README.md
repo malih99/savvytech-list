@@ -36,7 +36,7 @@ A React-based item management app built with Zustand for state management and Ra
 1. Clone the repository:
 
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/malih99/savvytech-list>
 cd <your-repo-folder>
 Install dependencies:
 
