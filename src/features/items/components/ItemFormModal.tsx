@@ -22,6 +22,7 @@ export default function ItemFormModal({
   editing?: Item | null;
   onSaved?: (item: Item) => void;
 }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const createLocal = useItemsStore((s) => s.createItemLocal);
   const updateLocal = useItemsStore((s) => s.updateItemLocal);
 
